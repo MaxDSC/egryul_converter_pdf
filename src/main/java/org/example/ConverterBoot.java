@@ -8,13 +8,12 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.util.ArrayList;
 
 public class ConverterBoot {
     public static void main(String[] args) {
         try {
             Converter converter = new Converter("C:/Users/Programmer/res/vipiska.pdf");
-            String text = converter.getText(1, 17);
+            converter.splitTextToRowsTable(1,1);
 //            System.out.println(text);
 //            float h = converter.findUpperBorderText(1);
 //            System.out.println("Border Y="+h);

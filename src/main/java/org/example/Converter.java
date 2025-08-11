@@ -9,7 +9,9 @@ import org.apache.pdfbox.text.PDFTextStripperByArea;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -20,6 +22,7 @@ public class Converter {
     private final float WIDTH_FIRST_COL;
     private final float WIDTH_TWO_COL;
     ArrayList<String> text;
+    ArrayDeque<String> rows;
 
 
     public Converter(String pathName) throws IOException {
@@ -27,6 +30,7 @@ public class Converter {
         countPage = doc.getNumberOfPages();
         WIDTH_FIRST_COL = 31;
         WIDTH_TWO_COL = 113.4f;
+        rows = new ArrayDeque<String>();
     }
 
     public PDPage getPage(int number) {
@@ -39,99 +43,116 @@ public class Converter {
         return pdfStripper.getText(doc);
     }
 
-    public String getText(int startNumberPage, int endNumberPage) throws IOException {
+    public void splitTextToRowsTable(int startNumberPage, int endNumberPage) throws IOException {
         if (startNumberPage < 0 || startNumberPage > countPage || endNumberPage < 0 || endNumberPage > countPage || endNumberPage < startNumberPage)
             throw new IllegalArgumentException("A non-existent page is specified");
-
-        ArrayDeque<String> rows = new ArrayDeque<String>();
-        if (startNumberPage == endNumberPage) {
+        for (int i = startNumberPage; i <= endNumberPage; i++) {
             PDFTextStripper pdfStripper = new PDFTextStripper();
-            pdfStripper.setStartPage(startNumberPage);
-            pdfStripper.setEndPage(startNumberPage);
+            pdfStripper.setStartPage(i);
+            pdfStripper.setEndPage(i);
             String text = pdfStripper.getText(doc);
             extractTable(text, rows);
-        } else {
-            for (int i = startNumberPage; i <= endNumberPage; i++) {
-                PDFTextStripper pdfStripper = new PDFTextStripper();
-                pdfStripper.setStartPage(i);
-                pdfStripper.setEndPage(i);
-                String text = pdfStripper.getText(doc);
-                extractTable(text, rows);
-            }
-
         }
         for (String s : rows) System.out.println(s);
-
-
-//        String[] arrText = text.split("\r\n");
-//        System.out.println("SIZE="+arrText.length);
-//        int endTable  = arrText.length - 3;
-//        for(int i = 0; i< arrText.length; i++){
-//            if (arrText[i].equals("Выписка из ЕГРЮЛ")){
-//                endTable = i - 1;
-//            }
-//        }
-//        System.out.println("Index="+endTable);
-//        Pattern pattern = Pattern.compile("^\\d{1,3}\\s\\D{1,}");
-//        ArrayDeque<String> list = new ArrayDeque<>();
-//        for(int i = 0 ; i < arrText.length; i++){
-//            Matcher matcher = pattern.matcher(arrText[i]);
-//            if(matcher.find()) list.add(arrText[i]);
-//        }
-//
-//        for(int i = 0; i < endTable; i++){
-//            String str = arrText[i];
-//            if (str.equals(list.getFirst())){
-//                int j = 1;
-//                String s = list.poll();
-//                while(j < endTable - i && !arrText[i + j].equals(list.getFirst())){
-//                    s = s + " " + arrText[i+j];
-//                    j++;
-//                }
-//                list.add(s);
-//            }
-//        }
-//
-//        for(String s : list) System.out.println(s);
-
-        return "pdfStripper.getText(doc);";
     }
 
-    private void extractTable(String text, ArrayDeque<String> list) {
-        int sizeOld = list.size();
-        boolean isNotEmpty = sizeOld > 0;
-        String[] arrText = text.split("\r\n");
-        int endTable = arrText.length - 3;
-        Pattern pattern = Pattern.compile("^\\d{1,3}\\s\\D{1,}");
+    public void splitTextToRowsTable() throws IOException {
+       splitTextToRowsTable(1, 17);
+    }
 
-        for (int i = 0; i < arrText.length; i++) {
-            if (arrText[i].equals("Выписка из ЕГРЮЛ")) {
+    //Превратит исходный текст, который заключен в таблице PDF в нумерованные строки таблицы очереди.
+    private void extractTable(String text, ArrayDeque<String> list) {
+        String[] arrText = text.split("\r\n");
+        int endTable = getLowestBorerTable(arrText);
+        identifyNumberedLines(list, arrText);
+        concatAssociatedStrings(list, arrText, endTable);
+        fixNumbering(list);
+    }
+
+    //Вернет последнюю строку в стаблице
+    private int getLowestBorerTable(String[] text) {
+        int endTable = text.length - 3;
+        for (int i = 0; i < text.length; i++) {
+            if (text[i].equals("Выписка из ЕГРЮЛ")) {
                 endTable = i - 1;
                 break;
             }
         }
+        return endTable;
+    }
 
-        for (int i = 0; i < arrText.length; i++) {
-            Matcher matcher = pattern.matcher(arrText[i]);
-            if (matcher.find()) list.add(arrText[i]);
+    //Вставляет нумерованные строчки из таблицы выписки в очередь
+    // Если очередь не пустая, при обработке более одной страницы, то вставляет строчки из большей страницы вперед
+    //Например, для одной страницы (очередь пуста) -> 1,2,3,4,5,6,7,8,9
+    //Например, для двух страниц -> 10,11,12,13,14,15,1,2,3,4,5,6,7,8,9
+    private void identifyNumberedLines(ArrayDeque<String> rows, String[] text) {
+        int sizeOld = rows.size();
+        boolean isNotEmpty = sizeOld > 0;
+        Pattern pattern = Pattern.compile("^\\d{1,4}\\s\\D{1,}");
+
+        for (int i = 0; i < text.length; i++) {
+            Matcher matcher = pattern.matcher(text[i]);
+            if (matcher.find()) rows.add(text[i]);
         }
 
         if (isNotEmpty) {
             for (int i = 0; i < sizeOld; i++) {
-                list.add(Objects.requireNonNull(list.poll()));
+                rows.add(Objects.requireNonNull(rows.poll()));
             }
         }
+    }
 
+    //Соединяет все строки, которое находятся внутри одной нумерованной строки таблицы, но имеют перенос
+    //Например, без ассоциации, ниже
+    //1 Полное наименование на русском языке ОБЩЕСТВО С ОГРАНИЧЕННОЙ (в PDF одна строка)
+    //ОТВЕТСТВЕННОСТЬЮ "Дельта"
+    //2 ГРН и дата внесения в ЕГРЮЛ записи,
+    //содержащей указанные сведения
+    //1000000000000
+    //11.12.2002
+    //С ассоциацией превратиться в ->
+    //1 Полное наименование на русском языке ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ "Дельта"
+    //2 ГРН и дата внесения в ЕГРЮЛ записи, содержащей указанные сведения 1000000000000 11.12.2002
+    private void concatAssociatedStrings(ArrayDeque<String> rows, String[] text, int endTable) {
         for (int i = 0; i < endTable; i++) {
-            String str = arrText[i];
-            if (str.equals(list.getFirst())) {
+            String str = text[i];
+            if (str.equals(rows.getFirst())) {
                 int j = 1;
-                String s = list.poll();
-                while (j < endTable - i && !arrText[i + j].equals(list.getFirst())) {
-                    s = s + " " + arrText[i + j];
+                String s = rows.poll();
+                while (j < endTable - i && !text[i + j].equals(rows.getFirst())) {
+                    s = s + " " + text[i + j];
                     j++;
                 }
-                list.add(s);
+                rows.add(s);
+            }
+        }
+    }
+
+    //Убирает строки, которые нарушают нумерацию строчек.
+    //Обычно это даты, которые распознались как номер строки, например, 1 июля - будет распознано, как отдельная строка таблицы
+    // 15  Наименование органа, зарегистрировавшего юридическое лицо до ...
+    // 1 июля 2002 года ...
+    // 16 ГРН и дата внесения в ЕГРЮЛ записи, содержащей указанные сведения ...
+    //Превратит в
+    // 15  Наименование органа, зарегистрировавшего юридическое лицо до 1 июля 2002 года ...
+    // 16 ГРН и дата внесения в ЕГРЮЛ записи, содержащей указанные сведения ...
+    //Данный метод соединяет предыдущую строку с ошибочной строкой.
+    private void fixNumbering(ArrayDeque<String> rows) {
+        Pattern pattern = Pattern.compile("^\\d{1,4}\\s");
+        int lastNum = 0;
+        for (int i = 0; i < rows.size(); i++) {
+            String str = rows.poll();
+            Matcher matcher = pattern.matcher(str);
+            if (matcher.find()) {
+                String find = str.substring(matcher.start(), matcher.end());
+                int num = Integer.parseInt(find.replace(" ", ""));
+                if (lastNum != num - 1) {
+                    rows.add(rows.pollLast() + " " + str);
+                    i--;
+                } else {
+                    lastNum = num;
+                    rows.add(str);
+                }
             }
         }
     }
@@ -269,5 +290,9 @@ public class Converter {
 
     public int getCountPage() {
         return countPage;
+    }
+
+    public ArrayDeque<String> getRows() {
+        return rows;
     }
 }
