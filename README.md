@@ -10,25 +10,23 @@
 - [pdfbox](https://github.com/apache/pdfbox)
 
 ## Проделанная работа
+#### На данный момент в JSON переводятся следующие поля:</h4>
 
-<h4>На данный момент в JSON переводятся следующие поля:</h4>
 <table class="table table-striped table-bordered table-condensed tree2" style="font-size: smaller;">
 <thead><tr><th style="width: 190px;">Имя</th><th>Тип</th><th>Описание</th></tr></thead>
 <tbody>
-    <tr><td></td><td></td><td></td></tr>
-    <tr class="treegrid-1"><td><i>Поля для <b>ЮЛ</b>:</i></td><td></td><td>(любое из полей может отсутствовать)</td></tr>
-    <tr class="treegrid-2 treegrid-parent-1"><td>ИНН</td><td>String</td><td>ИНН искомой компании</td></tr>
-    <tr class="treegrid-2 treegrid-parent-1"><td>КПП</td><td>String</td><td>КПП искомой компании</td></tr>
-    <tr class="treegrid-2 treegrid-parent-1"><td>ОГРН</td><td>String</td><td>ОГРН искомой компании</td></tr>
-    <tr class="treegrid-2 treegrid-parent-1"><td>НаимСокрЮЛ</td><td>String</td><td>Наименование ЮЛ краткое</td></tr>
-    <tr class="treegrid-2 treegrid-parent-1"><td>НаимПолнЮЛ</td><td>String</td><td>Наименование ЮЛ полное</td></tr>
-    <tr class="treegrid-2 treegrid-parent-1"><td>ДатаРег</td><td>String</td><td>Дата регистрации ЮЛ в формате YYYY-MM-DD</td></tr>
-    <tr class="treegrid-2 treegrid-parent-1"><td>Статус</td><td>String</td><td>Статус ЮЛ (ИП). Например, «Действующее», «Ликвидировано», «В состоянии реорганизации» и др.</td></tr>
-<tr><td></td><td></td><td></td></tr>
+<tr class="treegrid-1"><td><i>Поля для <b>ЮЛ</b>:</i></td><td></td><td>(любое из полей может отсутствовать)</td></tr>
+<tr class="treegrid-2 treegrid-parent-1"><td>ИНН</td><td>String</td><td>ИНН искомой компании</td></tr>
+<tr class="treegrid-2 treegrid-parent-1"><td>КПП</td><td>String</td><td>КПП искомой компании</td></tr>
+<tr class="treegrid-2 treegrid-parent-1"><td>ОГРН</td><td>String</td><td>ОГРН искомой компании</td></tr>
+<tr class="treegrid-2 treegrid-parent-1"><td>НаимСокрЮЛ</td><td>String</td><td>Наименование ЮЛ краткое</td></tr>
+<tr class="treegrid-2 treegrid-parent-1"><td>НаимПолнЮЛ</td><td>String</td><td>Наименование ЮЛ полное</td></tr>
+<tr class="treegrid-2 treegrid-parent-1"><td>ДатаРег</td><td>String</td><td>Дата регистрации ЮЛ в формате YYYY-MM-DD</td></tr>
+<tr class="treegrid-2 treegrid-parent-1"><td>Статус</td><td>String</td><td>Статус ЮЛ (ИП). Например, «Действующее», «Ликвидировано», «В состоянии реорганизации» и др.</td></tr>
 </tbody>
 </table>
 
-<h4>Так будет выглядеть JSON:</h4>
+#### Так будет выглядеть JSON:
 ```
 {
   "ИНН": "2540096950",
@@ -42,7 +40,5 @@
   "НаимПолнЮЛ": "ОБЩЕСТВО С ОГРАНИЧЕННОЙ ОТВЕТСТВЕННОСТЬЮ \"ПРИМЕР\"",
 }
 ```
-Формат даты на данный момент: DD.MM.YYYY\
-Поле "Статус" пока не заполняется.
-
+На данный момент поле "Статус" не заполняется, а поля с датами имеют формат DD.MM.YYYY".
 
