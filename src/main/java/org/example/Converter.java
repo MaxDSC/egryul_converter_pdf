@@ -3,9 +3,7 @@ package org.example;
 import org.apache.pdfbox.Loader;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.text.PDFTextStripper;
-import org.apache.pdfbox.text.PDFTextStripperByArea;
 
 import java.io.*;
 import java.net.URISyntaxException;
@@ -19,15 +17,18 @@ import java.util.regex.Pattern;
 public class Converter {
     private PDDocument doc;
     private int countPage;
+    private int initCountLines;
     private static final float A4_WIDTH = 210;
     private final float WIDTH_FIRST_COL;
     private final float WIDTH_TWO_COL;
     private final String SPLIT_TEMPLATE = ";";
     private final String MARK_REG_EXP = "%";
+    private final int INIT_COUNT_TEMPLATES = 100;
+    private final int INIT_COUNT_LINES_IN_PAGE = 55;
     private ArrayList<String> text;
     private ArrayDeque<String> rows;
     private ArrayList<String> templates;
-    private Map<String, String> jsonKeys;
+    private HashMap<String, String> jsonKeys;
 
 
     /**
@@ -41,10 +42,11 @@ public class Converter {
     public Converter(String pathName) throws IOException, URISyntaxException {
         doc = Loader.loadPDF(new File(pathName));
         countPage = doc.getNumberOfPages();
+        initCountLines = countPage * INIT_COUNT_LINES_IN_PAGE;
         WIDTH_FIRST_COL = 31;
         WIDTH_TWO_COL = 113.4f;
-        rows = new ArrayDeque<String>();
-        jsonKeys = new HashMap<>();
+        rows = new ArrayDeque<String>(initCountLines);
+        jsonKeys = new HashMap<>(INIT_COUNT_TEMPLATES);
         setTemplates();
     }
 
@@ -100,7 +102,7 @@ public class Converter {
     }
 
     /**
-     * Выведет значение 3 столбца выписки (Значение показателя), согласно загруженным шаблонам.
+     * Сохранит в HashMap<String, String> jsonKeys ключи согласно второму столбцу templates.csv, а значения будут найдены согласно шаблону в первом столбце templates.csv.
      * Ищет в коллекции строк таблицы выписки строки по шаблонам из коллекции шаблонов. Шаблоны соответствуют значениям из второго столбца выписки.
      * Если строка из таблицы имеет подстроку из шаблона (или по регулярному выражению), то из строки таблицы вырезается шаблон, таким образом, оставляя только значение 3-ого столбца таблицы выписки.
      * При этом удаляется элемент шаблона из коллекции шаблонов, для анализа тех шаблонов, которые не удалось найти.
@@ -124,16 +126,17 @@ public class Converter {
                         Pattern innerPatter = Pattern.compile(twoExp[1]);
                         Matcher innerMatcher = innerPatter.matcher(r);
                         if (innerMatcher.find()) endSub = innerMatcher.end();
-
                     }
-                    String value = r.substring(endSub);
+                    String value = r.substring(endSub + 1);
                     System.out.println("R---> " + r);
                     System.out.println("S---> " + twoExp[0]);
-                    System.out.println("V--->" + value + "\n");
+                    System.out.println("V---> " + value + "\n");
                     findedT = t;
+                    jsonKeys.put(arrT[1], value);
                     break;
                 }
             }
+
             templates.remove(findedT);
         }
         if (templates.isEmpty()) {
@@ -323,7 +326,7 @@ public class Converter {
      * Считывает из файла templates.csv шаблоны поиска, которые должны соответствовать значениям ячеек во втором столбце PDF-выписки.
      */
     private void setTemplates() throws URISyntaxException, IOException {
-        templates = new ArrayList<String>();
+        templates = new ArrayList<String>(INIT_COUNT_TEMPLATES);
         URL res = getClass().getClassLoader().getResource("templates.csv");
         File fileTemplates = Paths.get(res.toURI()).toFile();
         BufferedReader br = new BufferedReader(new FileReader(fileTemplates, StandardCharsets.UTF_8));
@@ -332,129 +335,6 @@ public class Converter {
             templates.add(s);
         }
     }
-
-    public String getTextFromArea(int numberPage) throws IOException {
-        numberPage = numberPage - 1;
-        if (numberPage > countPage || numberPage < 0)
-            throw new IllegalArgumentException("A non-existent page is specified");
-        PDPage page = getPage(numberPage);
-        PDRectangle pageRect = page.getBBox();
-        float width = pageRect.getWidth();
-        PDRectangle rect = new PDRectangle(0, 0, width, 100);
-        System.out.println(rect.toString());
-        PDFTextStripperByArea pdfArea = new PDFTextStripperByArea();
-        pdfArea.addRegion("reg1", rect.toGeneralPath().getBounds2D());
-        pdfArea.extractRegions(page);
-        String textArea = pdfArea.getTextForRegion("reg1");
-        return textArea;
-    }
-
-    public String getTextFromArea(int numberPage, float h) throws IOException {
-        numberPage = numberPage - 1;
-        if (numberPage > countPage || numberPage < 0)
-            throw new IllegalArgumentException("A non-existent page is specified");
-        PDPage page = getPage(numberPage);
-        PDRectangle pageRect = page.getBBox();
-        float width = pageRect.getWidth();
-        PDRectangle rect = new PDRectangle(0, 50, width, 5);
-        System.out.println(rect.toString());
-        PDFTextStripperByArea pdfArea = new PDFTextStripperByArea();
-        pdfArea.addRegion("reg1", rect.toGeneralPath().getBounds2D());
-        pdfArea.extractRegions(page);
-        String textArea = pdfArea.getTextForRegion("reg1");
-        return textArea;
-    }
-
-    public float findUpperBorderText(int numberPage) throws IOException {
-        numberPage = numberPage - 1;
-        if (numberPage > countPage || numberPage < 0)
-            throw new IllegalArgumentException("A non-existent page is specified");
-        PDPage page = doc.getPage(numberPage);
-        PDRectangle pageRect = page.getBBox();
-        float x = 0;
-        float y = 0;
-        float width = pageRect.getWidth();
-        float height = 0.5F;
-        PDFTextStripperByArea pdfArea = new PDFTextStripperByArea();
-        while (true) {
-            PDRectangle rect = new PDRectangle(x, y, width, height);
-            System.out.println(rect.toString());
-            pdfArea.addRegion("reg1", rect.toGeneralPath().getBounds2D());
-            pdfArea.extractRegions(page);
-            String textArea = pdfArea.getTextForRegion("reg1");
-            if (!textArea.isEmpty() && !textArea.equals("\n") && !textArea.equals("\r\n")) {
-                break;
-            }
-            height = height + 0.5f;
-        }
-        return height;
-    }
-
-    public void extractText() throws IOException {
-        for (int numberPage = 0; numberPage < countPage; numberPage++) {
-            PDPage page = doc.getPage(numberPage);
-            PDRectangle pageRect = page.getBBox();
-            text = new ArrayList<String>();
-            float yMax = pageRect.getUpperRightY();
-            float width = pageRect.getWidth();
-            float middle = pageRect.getUpperRightX() * (WIDTH_TWO_COL / A4_WIDTH - 0.005f);
-            PDFTextStripperByArea pdfArea = new PDFTextStripperByArea();
-            float y = 0;
-            float height = 0.5F;
-            while (true) {
-                if (height >= yMax - y) break;
-                height = 0.5F;
-                while (height < yMax - y) {
-                    PDRectangle rect = new PDRectangle(0, y, width, height);
-                    System.out.println(rect.toString() + "h=" + height);
-                    pdfArea.addRegion("reg1", rect.toGeneralPath().getBounds2D());
-                    pdfArea.extractRegions(page);
-                    String textArea = pdfArea.getTextForRegion("reg1");
-                    if (!textArea.isEmpty() && !textArea.equals("\n") && !textArea.equals("\r\n")) {
-                        y = y + height;
-                        text.add(textArea);
-                        break;
-                    }
-                    height = height + 0.5f;
-                }
-            }
-        }
-
-    }
-
-    public ArrayList<String> extractText(int numberPage) throws IOException {
-        numberPage = numberPage - 1;
-        if (numberPage > countPage || numberPage < 0)
-            throw new IllegalArgumentException("A non-existent page is specified");
-        ArrayList<String> lines = new ArrayList<String>();
-        PDPage page = doc.getPage(numberPage);
-        PDRectangle pageRect = page.getBBox();
-        float yMax = pageRect.getUpperRightY();
-        float width = pageRect.getWidth();
-        float middle = pageRect.getUpperRightX() * (WIDTH_TWO_COL / A4_WIDTH - 0.005f);
-        PDFTextStripperByArea pdfArea = new PDFTextStripperByArea();
-        float y = 0;
-        float height = 0.5F;
-        while (true) {
-            if (height >= yMax - y) break;
-            height = 0.5F;
-            while (height < yMax - y) {
-                PDRectangle rect = new PDRectangle(0, y, width, height);
-                System.out.println(rect.toString() + "h=" + height);
-                pdfArea.addRegion("reg1", rect.toGeneralPath().getBounds2D());
-                pdfArea.extractRegions(page);
-                String textArea = pdfArea.getTextForRegion("reg1");
-                if (!textArea.isEmpty() && !textArea.equals("\n") && !textArea.equals("\r\n")) {
-                    y = y + height;
-                    lines.add(textArea);
-                    break;
-                }
-                height = height + 0.5f;
-            }
-        }
-        return lines;
-    }
-
 
     public void closeDocument() throws IOException {
         doc.close();
@@ -480,4 +360,7 @@ public class Converter {
         this.templates = templates;
     }
 
+    public HashMap<String, String> getJsonKeys() {
+        return jsonKeys;
+    }
 }

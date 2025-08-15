@@ -2,12 +2,42 @@ package org.example;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonGetter;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Vypiska {
+
+    public Vypiska() {
+    }
+
+    /**
+     * Конструктор, заполняющий поля по значению в аннотации @{@link JsonSetter}, которые должны соответствовать ключу из параметра.
+     *
+     * @param jsonValues hashmap, где ключ - значение аннотации @{@link JsonSetter}, а значения - String для заполнения полей класса.
+     */
+    public Vypiska(HashMap<String, String> jsonValues) throws IllegalAccessException {
+        Field[] fields = this.getClass().getDeclaredFields();
+        ArrayList<String> jsonKeys = new ArrayList<>();
+        for (int i = 0; i < fields.length; i++) {
+            Annotation[] annotations = fields[i].getDeclaredAnnotations();
+            for (int j = 0; j < annotations.length; j++) {
+                if (annotations[j].annotationType().equals(JsonSetter.class)) {
+                    String key = fields[i].getAnnotation(JsonSetter.class).value();
+                    if (jsonValues.containsKey(key)) {
+                        fields[i].set(this, jsonValues.get(key));
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
     @JsonSetter("ИНН")
     String INN;
     @JsonSetter("КПП")
@@ -15,11 +45,9 @@ public class Vypiska {
     @JsonSetter("ОГРН")
     String OGRN;
     @JsonSetter("ДатаОГРН")
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    LocalDate DataOGRN;
+    String DataOGRN;
     @JsonSetter("ДатаРег")
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    LocalDate DataReg;
+    String DataReg;
     @JsonSetter("Статус")
     String Status;
     @JsonSetter("СпОбрЮЛ")
@@ -47,12 +75,12 @@ public class Vypiska {
     }
 
     @JsonGetter("ДатаОГРН")
-    public LocalDate getDataOGRN() {
+    public String getDataOGRN() {
         return DataOGRN;
     }
 
     @JsonGetter("ДатаРег")
-    public LocalDate getDataReg() {
+    public String getDataReg() {
         return DataReg;
     }
 
