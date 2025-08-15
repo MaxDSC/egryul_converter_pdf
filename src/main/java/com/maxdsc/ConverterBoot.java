@@ -1,4 +1,4 @@
-package org.example;
+package com.maxdsc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
