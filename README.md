@@ -10,9 +10,12 @@
 - [pdfbox](https://github.com/apache/pdfbox)
 
 ## Проделанная работа
-Созданы два класса, отражающие структуру выписки: [Vypiska.java](https://github.com/MaxDSC/egryul_converter_pdf/blob/radical/src/main/java/com/maxdsc/Vypiska.java), [Section.java](https://github.com/MaxDSC/egryul_converter_pdf/blob/radical/src/main/java/com/maxdsc/Section.java).
+
+Созданы два класса, отражающие структуру
+выписки: [Vypiska.java](https://github.com/MaxDSC/egryul_converter_pdf/blob/radical/src/main/java/com/maxdsc/Vypiska.java), [Section.java](https://github.com/MaxDSC/egryul_converter_pdf/blob/radical/src/main/java/com/maxdsc/Section.java).
 Благодаря этим классам можно поделить выписку на разделы, а внутри каждого из разделов могут быть свои разделы.
 Для вывода выписки был создан метод `public String getTree()`, который выводит содержимое выписки в таком формате:
+
 ```
 ВЫПИСКА
   Секция 1
@@ -29,4 +32,17 @@
     Подсекция 2
   Секция 3
 ```
-Конвертация из PDF в экземпляр выписки была вынесена в отдельный класс [ConverterOperations.java](https://github.com/MaxDSC/egryul_converter_pdf/blob/radical/src/main/java/com/maxdsc/ConverterOperations.java), реализующий интерфейс [Convertible.java](https://github.com/MaxDSC/egryul_converter_pdf/blob/radical/src/main/java/com/maxdsc/Convertible.java), который является полем в классе выписки.
+
+- Конвертация из PDF в экземпляр выписки была вынесена в отдельный
+  класс [ConverterOperations.java](https://github.com/MaxDSC/egryul_converter_pdf/blob/radical/src/main/java/com/maxdsc/ConverterOperations.java),
+  реализующий
+  интерфейс [Convertible.java](https://github.com/MaxDSC/egryul_converter_pdf/blob/radical/src/main/java/com/maxdsc/Convertible.java),
+  который является полем в классе выписки.
+- Метод `textToCollect()` позволяет постранично перевести весь текст выписки в коллекцию строк выписки, где игнорируются
+  последние три строки (`DROPPED_END_LINES`) на каждой странице.
+    - Три строки нужно убрать, так как на каждой странице есть колонтитул:
+    ```
+   Страница 1 из 
+   Выписка из ЕГРЮЛ
+   09.09.2025 21:02 ОГРН 1000000000000 17
+    ```

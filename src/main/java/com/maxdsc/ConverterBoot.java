@@ -12,7 +12,9 @@ public class ConverterBoot {
     public static void main(String[] args) {
         //TODO: в будущем путь до файла надо брать из args
         try {
-            testTree("C:/Users/Programmer/res/vipiska.pdf");
+            String pathFile = "C:/Users/Programmer/res/vipiska.pdf";
+            Vypiska vypiska = new Vypiska(pathFile);
+            vypiska.convert();
         } catch (IOException e) {
             e.printStackTrace();
             throw new RuntimeException(e);

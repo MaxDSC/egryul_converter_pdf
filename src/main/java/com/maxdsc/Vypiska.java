@@ -40,16 +40,18 @@ public class Vypiska {
      *
      * @return строку, представляющую собой все разделы выписки с подразделами, внутри раздела и каждого из подразделов могут быть строки текста.
      */
-    public String getTree(){
+    public String getTree() {
         if (sections.isEmpty()) throw new NullPointerException("Sections is NULL!");
         String top = "ВЫПИСКА\n";
-        for(Section sec : sections){
+        for (Section sec : sections) {
             top = top + sec.getTree("  ") + "\n";
         }
         return top;
     }
 
     public String convert() throws IOException {
+        ArrayDeque<String> text = convertibleOperations.textToCollect();
+        for (String s : text) System.out.println(s);
         return convertibleOperations.getText();
     }
 
