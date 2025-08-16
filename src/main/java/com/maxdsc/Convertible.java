@@ -1,7 +1,9 @@
 package com.maxdsc;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 
 public interface Convertible {
     /**
@@ -21,4 +23,11 @@ public interface Convertible {
      * @return коллекцию, где каждый элемент это строка из выписки.
      */
     ArrayDeque<String> textToCollect() throws IOException;
+
+    /**
+     * Считывает из файла table_template.csv шаблон выписки в коллекцию.
+     *
+     * @return коллекцию, где каждый элемент это строка из шаблона выписки.
+     */
+    ArrayList<String> getTemplate() throws URISyntaxException, IOException;
 }

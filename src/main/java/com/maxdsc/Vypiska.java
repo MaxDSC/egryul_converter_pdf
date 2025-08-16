@@ -5,7 +5,9 @@ import org.apache.pdfbox.pdmodel.PDDocument;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 
 public class Vypiska {
     private int countPage;
@@ -49,9 +51,11 @@ public class Vypiska {
         return top;
     }
 
-    public String convert() throws IOException {
+    public String convert() throws IOException, URISyntaxException {
         ArrayDeque<String> text = convertibleOperations.textToCollect();
-        for (String s : text) System.out.println(s);
+        ArrayList<String> template = convertibleOperations.getTemplate();
+        for (String s : template) System.out.println(s);
+        //for (String s : text) System.out.println(s);
         return convertibleOperations.getText();
     }
 

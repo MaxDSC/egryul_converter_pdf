@@ -15,7 +15,7 @@ public class ConverterBoot {
             String pathFile = "C:/Users/Programmer/res/vipiska.pdf";
             Vypiska vypiska = new Vypiska(pathFile);
             vypiska.convert();
-        } catch (IOException e) {
+        } catch (IOException | URISyntaxException e) {
             e.printStackTrace();
             throw new RuntimeException(e);
         }

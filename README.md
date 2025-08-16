@@ -38,6 +38,9 @@
   реализующий
   интерфейс [Convertible.java](https://github.com/MaxDSC/egryul_converter_pdf/blob/radical/src/main/java/com/maxdsc/Convertible.java),
   который является полем в классе выписки.
+
+### Реализация интерфейса [Convertible.java](https://github.com/MaxDSC/egryul_converter_pdf/blob/radical/src/main/java/com/maxdsc/Convertible.java):
+
 - Метод `textToCollect()` позволяет постранично перевести весь текст выписки в коллекцию строк выписки, где игнорируются
   последние три строки (`DROPPED_END_LINES`) на каждой странице.
     - Три строки нужно убрать, так как на каждой странице есть колонтитул:
@@ -46,3 +49,10 @@
    Выписка из ЕГРЮЛ
    09.09.2025 21:02 ОГРН 1000000000000 17
     ```
+
+- Метод `getTemplate()` позволяет считать шаблон
+  выписки [resources/table_template.csv](https://github.com/MaxDSC/egryul_converter_pdf/tree/radical/src/main/resources/table_template.csv)
+  в коллекцию.
+    - Шаблон выписки представляет собой .csv-файл, где вначале буква `Р` - наименование раздела, `П` - наименование
+      подраздела, `П#` - означает, что дальше идут перечисляемые подразделы, `П-` - означает, что подраздел
+      пропускается.
