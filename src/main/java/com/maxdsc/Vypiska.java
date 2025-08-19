@@ -7,7 +7,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 
 public class Vypiska {
     private int countPage;
@@ -53,9 +52,10 @@ public class Vypiska {
 
     public String convert() throws IOException, URISyntaxException {
         ArrayDeque<String> text = convertibleOperations.textToCollect();
-        ArrayList<String> template = convertibleOperations.getTemplate();
-        for (String s : template) System.out.println(s);
+        ArrayDeque<String> template = convertibleOperations.getTemplate();
+        //for (String s : template) System.out.println(s);
         //for (String s : text) System.out.println(s);
+        convertibleOperations.fillSections(text, template);
         return convertibleOperations.getText();
     }
 

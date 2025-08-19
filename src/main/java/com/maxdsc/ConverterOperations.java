@@ -11,7 +11,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayDeque;
-import java.util.ArrayList;
 
 public class ConverterOperations implements Convertible {
     private PDDocument doc;
@@ -50,13 +49,54 @@ public class ConverterOperations implements Convertible {
     }
 
     @Override
-    public ArrayList<String> getTemplate() throws URISyntaxException, IOException {
-        ArrayList<String> templates = new ArrayList<>(INIT_COUNT_TEMPLATES);
+    public ArrayDeque<String> getTemplate() throws URISyntaxException, IOException {
+        ArrayDeque<String> templates = new ArrayDeque<>(INIT_COUNT_TEMPLATES);
         URL res = getClass().getClassLoader().getResource(FILE_TEMPLATE);
         if (res != null) {
             Path path = Paths.get(res.toURI());
-            templates = (ArrayList<String>) Files.readAllLines(path, StandardCharsets.UTF_8);
+            templates.addAll(Files.readAllLines(path, StandardCharsets.UTF_8));
         }
         return templates;
+    }
+
+    @Override
+    public ArrayDeque<Section> fillSections(ArrayDeque<String> text, ArrayDeque<String> templates) {
+        if (text.isEmpty() || templates.isEmpty())
+            throw new IllegalStateException("Deque text is empty or Deque template is empty!");
+        //TODO: на данный момент позволяет извлечь только первый раздел и выводит его в консоль.
+        ArrayDeque<String> copyText = new ArrayDeque<>(text);
+        ArrayDeque<String> copyTemplates = new ArrayDeque<>(templates);
+        ArrayDeque<String> templateInSections = defineSectionInTemplates(copyTemplates);
+        for (String s : templateInSections) System.out.println(s);
+        Section sec1 = fillOneSection(copyText, templateInSections);
+        System.out.println("---------");
+        for (String s : sec1.getRows()) System.out.println(s);
+        return null;
+    }
+
+    @Override
+    public ArrayDeque<String> defineSectionInTemplates(ArrayDeque<String> allTemplates) {
+        ArrayDeque<String> section = new ArrayDeque<>();
+        do {
+            section.add(allTemplates.poll());
+        } while (!allTemplates.isEmpty() && allTemplates.peek().charAt(0) != 'Р');
+        if (!allTemplates.isEmpty()) section.add(allTemplates.peek());
+        return section;
+    }
+
+    @Override
+    public Section fillOneSection(ArrayDeque<String> text, ArrayDeque<String> sectionTemplate) {
+        //TODO: добавить обработку подразделов и последнего раздела. На данный момент работает только для sectionTemplate размером 2.
+        Section section = new Section();
+        String[] topTemplate = sectionTemplate.poll().split(";");
+        String[] nextTemplate = sectionTemplate.poll().split(";");
+        if (sectionTemplate.isEmpty()) {
+            while (!text.isEmpty() && !topTemplate[1].equals(text.peek())) text.poll();
+            section.setName(text.poll());
+            while ((!text.isEmpty() && !text.peek().equals(nextTemplate[1]))) {
+                section.addRows(text.poll());
+            }
+        }
+        return section;
     }
 }

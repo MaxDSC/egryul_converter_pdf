@@ -9,6 +9,8 @@ public class Section {
     private ArrayDeque<Section> subsections;
 
     public Section() {
+        this.rows = new ArrayDeque<>();
+        this.subsections = new ArrayDeque<>();
     }
 
     public Section(String name) {
@@ -40,6 +42,8 @@ public class Section {
             for(Section sub : subsections){
                 tree = tree + "\n" + getContent(indent) + sub.getTree(indent);
             }
+        } else {
+            tree = tree + "\n" + getContent(indent);
         }
         return tree;
     }
@@ -73,6 +77,22 @@ public class Section {
      */
     public boolean isHaveSubsections(){
         return !subsections.isEmpty();
+    }
+
+    public void addRows(String row){
+        this.rows.add(row);
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public ArrayDeque<String> getRows() {
+        return rows;
     }
 
     public void setRows(ArrayDeque<String> rows) {
