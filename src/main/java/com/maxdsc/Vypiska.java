@@ -55,7 +55,11 @@ public class Vypiska {
         ArrayDeque<String> template = convertibleOperations.getTemplate();
         //for (String s : template) System.out.println(s);
         //for (String s : text) System.out.println(s);
-        convertibleOperations.fillSections(text, template);
+        try {
+            convertibleOperations.fillSections(text, template);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return convertibleOperations.getText();
     }
 

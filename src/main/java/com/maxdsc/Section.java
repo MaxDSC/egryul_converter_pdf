@@ -35,11 +35,11 @@ public class Section {
      * @param indent - отступ.
      * @return строку, представляющую раздел выписки с подразделами, внутри раздела и каждого из подразделов могут быть строки текста.
      */
-    public String getTree(String indent){
+    public String getTree(String indent) {
         String tree = indent + name;
-        if (isHaveSubsections()){
+        if (isHaveSubsections()) {
             indent = indent + "  ";
-            for(Section sub : subsections){
+            for (Section sub : subsections) {
                 tree = tree + "\n" + getContent(indent) + sub.getTree(indent);
             }
         } else {
@@ -50,13 +50,14 @@ public class Section {
 
     /**
      * Получить строку, в которой будут все строки раздела.
+     *
      * @param indent - отступ.
      * @return строку, в которой будут все строки раздела.
      */
-    private String getContent(String indent){
+    private String getContent(String indent) {
         String content = "";
-        if (rows != null && !rows.isEmpty()){
-            for(String s : rows){
+        if (rows != null && !rows.isEmpty()) {
+            for (String s : rows) {
                 content = content + indent + s + "\n";
             }
         }
@@ -65,21 +66,23 @@ public class Section {
 
     /**
      * Добавить подраздел в текущий раздел.
+     *
      * @param sub подраздел.
      */
-    public void addSubSection(Section sub){
+    public void addSubSection(Section sub) {
         subsections.add(sub);
     }
 
     /**
      * Имеет ли раздел подразделы.
+     *
      * @return true, если имеет подразделы.
      */
-    public boolean isHaveSubsections(){
+    public boolean isHaveSubsections() {
         return !subsections.isEmpty();
     }
 
-    public void addRows(String row){
+    public void addRows(String row) {
         this.rows.add(row);
     }
 
@@ -99,4 +102,11 @@ public class Section {
         this.rows = rows;
     }
 
+    public void setSubsections(ArrayDeque<Section> subsections) {
+        this.subsections = subsections;
+    }
+
+    public ArrayDeque<Section> getSubsections() {
+        return subsections;
+    }
 }

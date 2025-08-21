@@ -37,7 +37,7 @@ public interface Convertible {
      * @param allTemplates коллекция всех шаблонов.
      * @return разделы выписки, соответствующие шаблону всех разделов.
      */
-    ArrayDeque<Section> fillSections(ArrayDeque<String> text, ArrayDeque<String> allTemplates);
+    ArrayDeque<Section> fillSections(ArrayDeque<String> text, ArrayDeque<String> allTemplates) throws Exception;
 
     /**
      * Передает верхний раздел, его подразделы и название следующего раздела в коллекцию. В исходной коллекции, где изначально должны быть собранны все шаблоны, удаляется верхний раздел и его подразделы, оставляя таким образом вверху наименование следующего раздела.
@@ -69,5 +69,24 @@ public interface Convertible {
      * @param sectionTemplate коллекция строк, где обозначен раздел, его подразделы и название следующего раздела.
      * @return раздел выписки, соответствующий шаблону раздела.
      */
-    Section fillOneSection(ArrayDeque<String> text, ArrayDeque<String> sectionTemplate);
+    Section fillOneSection(ArrayDeque<String> text, ArrayDeque<String> sectionTemplate) throws Exception;
+
+    /**
+     * Позволяет разложить нумерованные подразделы в коллекцию подразделов {@link Section}. У каждого подраздела name будет равен цифре нумерации. Удалит из коллекции текста нумерованный подраздел.
+     *
+     * @param text                 коллекция строк, где собран весь текст выписки.
+     * @param afterNumericTemplate строка следующего шаблона после строки нумерованного подраздела (П#).
+     * @return коллекцию нумерованных подразделов.
+     * @throws Exception если подраздел не начинается со строки "1".
+     */
+    ArrayDeque<Section> getNumericSubsections(ArrayDeque<String> text, String afterNumericTemplate) throws Exception;
+
+    /**
+     * Является ли первый элемент коллекции строкой-шаблоном.
+     *
+     * @param text         коллекция строк, где собран весь текст выписки.
+     * @param nextTemplate строка следующего шаблона из коллекции шаблонов.
+     * @return true, если первый элемент коллекции является строкой-шаблоном.
+     */
+    boolean checkNextTemplate(ArrayDeque<String> text, String nextTemplate);
 }
