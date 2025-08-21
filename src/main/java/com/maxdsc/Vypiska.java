@@ -52,11 +52,12 @@ public class Vypiska {
 
     public String convert() throws IOException, URISyntaxException {
         ArrayDeque<String> text = convertibleOperations.textToCollect();
-        ArrayDeque<String> template = convertibleOperations.getTemplate();
-        //for (String s : template) System.out.println(s);
-        //for (String s : text) System.out.println(s);
+        ArrayDeque<String> allTemplates = convertibleOperations.getTemplate();
+        ArrayDeque<String> orderedTemplates = convertibleOperations.getOrderedTemplates(text, allTemplates);
+        for (String s : orderedTemplates) System.out.println("\033[42m" + s + "\033[47m");
+        for (String s : allTemplates) System.out.println("\033[41m" + s + "\033[47m");
         try {
-            convertibleOperations.fillSections(text, template);
+            // convertibleOperations.fillSections(text, template);
         } catch (Exception e) {
             e.printStackTrace();
         }

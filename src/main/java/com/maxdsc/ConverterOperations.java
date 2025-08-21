@@ -11,6 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayDeque;
+import java.util.Iterator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -51,6 +52,70 @@ public class ConverterOperations implements Convertible {
             }
         }
         return text;
+    }
+
+    public ArrayDeque<String> getOrderedTemplates(ArrayDeque<String> text, ArrayDeque<String> allTemplates) {
+        ArrayDeque<String> orderedTemplates = new ArrayDeque<>();
+        Iterator<String> textIterator = text.iterator();
+        while (textIterator.hasNext()) {
+            String textLine = textIterator.next();
+            if (textLine.charAt(0) < '0' || textLine.charAt(0) > '9') {
+                Iterator<String> templateIterator = allTemplates.iterator();
+                while (templateIterator.hasNext()) {
+                    String template = templateIterator.next();
+                    if (checkNameSectionInText(textLine, textIterator, template)) {
+                        addSectionInTemplate(template, templateIterator, orderedTemplates);
+                    }
+                }
+            }
+        }
+        return orderedTemplates;
+    }
+
+    /**
+     * Проверка является ли строка из текста строкой-шаблоном раздела. Если название раздела не помещается в одной строчке выписки, то с шаблоном сравнивается склейка из текущей и следующей строки текста. Следующая строка текста берется через итератор.
+     *
+     * @param textLine     строка из коллекции текста выписки.
+     * @param textIterator итератор коллекции текста выписки.
+     * @param template     строка шаблона CSV.
+     * @return true, если строка текста является шаблоном, или если склейка текущей строки текста и следующей является шаблоном.
+     */
+    private boolean checkNameSectionInText(String textLine, Iterator<String> textIterator, String template) {
+        boolean textContainsSection = false;
+        String[] splitTemplate = template.split(CSV_SEPARATOR);
+        if (splitTemplate.length == 2) {
+            String strTemplate = splitTemplate[1];
+            textContainsSection = textLine.equals(strTemplate);
+            if (!textContainsSection) {
+                if (strTemplate.contains(textLine)) {
+                    String join = String.join(" ", textLine, textIterator.next());
+                    textContainsSection = join.equals(strTemplate);
+                }
+            }
+        }
+        return textContainsSection;
+    }
+
+    /**
+     * Добавляет строку раздела в orderedTemplates вместе со строками его нумерованных и нулевых подразделов.
+     *
+     * @param name             название добавляемого раздела.
+     * @param templateIterator итератор исходной коллекции шаблонов.
+     * @param orderedTemplates коллекция, в которую добавляется раздел.
+     */
+    private void addSectionInTemplate(String name, Iterator<String> templateIterator, ArrayDeque<String> orderedTemplates) {
+        orderedTemplates.add(name);
+        templateIterator.remove();
+        int len = 1;
+        while (templateIterator.hasNext() && len == 1) {
+            String template = templateIterator.next();
+            String[] splitNextTemplate = template.split(CSV_SEPARATOR);
+            len = splitNextTemplate.length;
+            if (len == 1) {
+                orderedTemplates.add(template);
+                templateIterator.remove();
+            }
+        }
     }
 
     @Override
@@ -116,7 +181,7 @@ public class ConverterOperations implements Convertible {
     public ArrayDeque<Section> getNumericSubsections(ArrayDeque<String> text, String afterNumericTemplate) throws Exception {
         ArrayDeque<String> numericArr = IntStream.rangeClosed(1, MAX_NUMERIC).mapToObj(String::valueOf).collect(Collectors.toCollection(ArrayDeque<String>::new));
         if (!text.peek().equals(numericArr.peek()))
-            throw new Exception("Templates error: after the line #П there should be a numbered subsection. ");
+            throw new Exception("Templates error: after the line #П there should be a numbered subsection.");
         String strNextTemplate = afterNumericTemplate.split(CSV_SEPARATOR)[1];
 
         ArrayDeque<Section> numericSubsections = new ArrayDeque<>();

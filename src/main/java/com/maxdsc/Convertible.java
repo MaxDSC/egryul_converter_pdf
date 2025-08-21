@@ -31,6 +31,15 @@ public interface Convertible {
     ArrayDeque<String> getTemplate() throws URISyntaxException, IOException;
 
     /**
+     * Позволяет извлечь из коллекции всех шаблонов разделов выписки только те разделы, которые есть в выписке, соблюдая при этом их порядок как в выписке. В коллекции allTemplates останутся только те разделы, которых нет в выписке.
+     *
+     * @param text         коллекция строк, где собран весь текст выписки.
+     * @param allTemplates все возможные шаблоны выписки. Их порядок может не совпадать с реальной выпиской.
+     * @return коллекцию строк-шаблонов разделов выписки, которые есть в allTemplates, при этом их порядок будет как в выписке.
+     */
+    ArrayDeque<String> getOrderedTemplates(ArrayDeque<String> text, ArrayDeque<String> allTemplates);
+
+    /**
      * Создает разделы выписки согласно шаблону.
      *
      * @param text         коллекция строк, где собран весь текст выписки.
